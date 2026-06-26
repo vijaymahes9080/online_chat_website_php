@@ -16,7 +16,7 @@ Chat Application
 
 * Run wamp server :exclamation:.
 
-* Make sure you have placed this entire application inside  :open_file_folder: c://wamp/www/chat_application.
+* Make sure you have placed this entire application inside  :open_file_folder: c://wamp/www/online_chat_website_php.
 
 * Left click on the wamp icon in system tray  It will display list of options Select “start all services”.
 
