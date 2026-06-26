@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Online Chat Website</title>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+        <!-- jQuery library -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        
+        <link rel="stylesheet" href="style.css">
+    </head>
+
+    <body>
+        <div class="container">
+            <div id="chat_box">
+                <div id="chat" style="height: 300px; overflow-y: auto; padding: 10px; background: rgba(0, 0, 0, 0.4); border-radius: 5px;">
+                    <!-- Chat messages will be loaded here dynamically -->
+                </div>
+
+                <form id="chat_form" class="form-horizontal" style="margin-top: 30px;">
+                    <div class="form-group">
+                        <label for="username" class="col-sm-2 control-label">Name</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="username" placeholder="Name" name="username" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="comment" class="col-sm-2 control-label">Comment:</label>
+                        <div class="col-sm-10">
+                            <textarea name="message" class="form-control" rows="2" id="comment" placeholder="Type your message..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button type="submit" class="btn btn-primary">Send it !</button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Audio element for chat sound -->
+                <audio id="chat_sound" src="sound/134332-facebook-chat-sound.mp3" preload="auto"></audio>
+            </div>
+        </div>
+
+        <script>
+            // Helper function to format time
+            function formatTime(date) {
+                let hours = date.getHours();
+                let minutes = date.getMinutes();
+                const ampm = hours >= 12 ? 'pm' : 'am';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                return hours + ':' + minutes + ' ' + ampm;
+            }
+
+            // Load messages from localStorage
+            function getMessages() {
+                const messages = localStorage.getItem('chat_messages');
+                if (messages) {
+                    return JSON.parse(messages);
+                } else {
+                    // Seed messages if none exist
+                    const defaultMessages = [
+                        { name: 'karan', msg: 'hi friends', date: '7:29 pm' },
+                        { name: 'vijaymahes9080', msg: 'Welcome to my online chat website! Feel free to send a message.', date: '7:30 pm' }
+                    ];
+                    localStorage.setItem('chat_messages', JSON.stringify(defaultMessages));
+                    return defaultMessages;
+                }
+            }
+
+            // Display messages in the chat box
+            function renderChat() {
+                const messages = getMessages();
+                let htmlContent = '';
+                
+                // Show latest messages at the bottom
+                messages.forEach(function(item) {
+                    htmlContent += `
+                        <div class="chat_message" style="margin-bottom: 12px; clear: both; overflow: auto;">
+                            <span style="color:red; font-weight: bold;">${escapeHtml(item.name)} : </span>
+                            <span style="font-family:cursive; color: white;">${escapeHtml(item.msg)}</span>
+                            <span style="font-family:cursive; float:right; color: white; opacity: 0.8;">${escapeHtml(item.date)}</span>
+                        </div>
+                    `;
+                });
+
+                const chatDiv = $('#chat');
+                chatDiv.html(htmlContent);
+                // Scroll to bottom
+                chatDiv.scrollTop(chatDiv[0].scrollHeight);
+            }
+
+            // Simple HTML escape function to prevent XSS
+            function escapeHtml(text) {
+                return text
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            // Handle message submission
+            $('#chat_form').on('submit', function(e) {
+                e.preventDefault();
+                const username = $('#username').val().trim();
+                const message = $('#comment').val().trim();
+
+                if (username && message) {
+                    const messages = getMessages();
+                    const now = new Date();
+                    const formattedTime = formatTime(now);
+
+                    messages.push({
+                        name: username,
+                        msg: message,
+                        date: formattedTime
+                    });
+
+                    localStorage.setItem('chat_messages', JSON.stringify(messages));
+                    renderChat();
+
+                    // Clear comment textarea
+                    $('#comment').val('');
+
+                    // Play chat sound
+                    const sound = document.getElementById('chat_sound');
+                    if (sound) {
+                        sound.currentTime = 0;
+                        sound.play().catch(function(err) {
+                            console.log("Audio play blocked: require interaction", err);
+                        });
+                    }
+                }
+            });
+
+            // Auto refresh simulation
+            function ajax() {
+                renderChat();
+            }
+
+            // Render on page load
+            $(document).ready(function() {
+                renderChat();
+                // Check for new messages periodically (simulates real-time in same browser)
+                setInterval(renderChat, 1000);
+            });
+        </script>
+    </body>
+</html>
